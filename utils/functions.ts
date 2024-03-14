@@ -1,4 +1,7 @@
+import axios from 'axios';
 import * as CryptoJS from 'crypto-js';
+import { AnimeData, AnimeResult } from './types';
+import { consumetApi } from '@/config/config';
 
 export function encodeNumber(
   numberToEncode: number,
@@ -86,3 +89,15 @@ export function generateColorByStatus(status: StatusType) {
 
   return color;
 }
+
+export const getTrendingAnimeForSitemap = async (): Promise<
+  AnimeResult[] | undefined
+> => {
+  try {
+    const response = await axios.get(`${consumetApi}/trending?perPage=34`);
+    return response.data.results as AnimeResult[];
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
