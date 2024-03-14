@@ -181,6 +181,7 @@ export default async function Watch({ params }: Readonly<Props>) {
                                     process.env.NEXT_PUBLIC_SECRET_KEY as string
                                   )
                                 )}/${params.episodeNumber}`}
+                                readOnly={true}
                               />
                               <CopyToClipboard />
                             </div>

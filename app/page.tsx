@@ -6,6 +6,7 @@ import SlidingCard from './components/SlidingCard';
 import { AnimeInfo, AnimeResult } from '@/utils/types';
 import LeftNavbar from './components/Navbar';
 import { generateIndex } from '@/utils/functions';
+import SearchComponent from './components/Search';
 
 export default function Home() {
   const [trending, setTrending] = useState<AnimeResult[] | null>(null);
@@ -46,11 +47,15 @@ export default function Home() {
               trending: `${trending?.[0].color ?? '#0e98cf'}`,
               popular: `${popular?.[generateIndex(0, 3)].color ?? '#0e98cf'}`,
             }}
+            active="Home"
           />
           <div className="divider divider-vertical -ml-4 mx-0 h-screen"></div>
+          <div className="ml-[450px] mt-4">
+            <SearchComponent />
+          </div>
         </div>
       </div>
-      <div className="ml-60">
+      <div className="ml-60 mt-20">
         {trending && popular ? (
           <div>
             <h1 className="text-3xl font-semibold">Trending Now</h1>
