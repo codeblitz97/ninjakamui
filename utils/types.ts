@@ -395,6 +395,42 @@ interface Anime {
   characters: Character[];
 }
 
+interface ServerEpisode {
+  id: string;
+  title: string;
+  image: string;
+  imageHash: string;
+  number: number;
+  createdAt: string;
+  description: string | null;
+  url: string;
+}
+
+interface ServerAnime {
+  consumet: boolean;
+  providerId: string;
+  episodes: {
+    sub: ServerEpisode[];
+    dub: ServerEpisode[];
+  };
+}
+
+interface ServerEpisodeInfo {
+  id: string;
+  img: string | null;
+  title: string;
+  hasDub: boolean;
+  number: number;
+  rating: string | null;
+  isFiller: boolean;
+  updatedAt: number;
+  description: string | null;
+}
+
+interface ServerAnimeInfo {
+  episodes: ServerEpisodeInfo[];
+}
+
 export type {
   ConsumetEpisode,
   AnimeInfo,
@@ -405,4 +441,8 @@ export type {
   VideoSource,
   AnifyEpisodeDetail,
   Anime,
+  ServerAnime,
+  ServerAnimeInfo,
+  ServerEpisode,
+  ServerEpisodeInfo,
 };
