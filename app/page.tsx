@@ -1,41 +1,30 @@
-'use client';
-
-import { useState, useEffect } from 'react';
+import { use } from 'react';
 import axios from 'axios';
 import SlidingCard from './components/SlidingCard';
 import { AnimeInfo, AnimeResult } from '@/utils/types';
-import { generateIndex } from '@/utils/functions';
 import SearchComponent from './components/Search';
 import Sidebar from './components/Sidebar';
 
+const fetchResult = async (type: 'popular' | 'trending') => {
+  try {
+    const response = await axios.get(
+      `${process.env.NEXT_PUBLIC_THIS_URL}/api/${
+        type === 'popular' ? 'popular' : 'trending'
+      }?perPage=30`
+    );
+    const data: AnimeInfo = response.data;
+    return data;
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
+
 export default function Home() {
-  const [trending, setTrending] = useState<AnimeResult[] | null>(null);
-  const [popular, setPopular] = useState<AnimeResult[] | null>(null);
-
-  useEffect(() => {
-    const fetchTrending = async () => {
-      try {
-        const response = await axios.get('/api/trending?perPage=30');
-        const data: AnimeInfo = response.data;
-        setTrending(data.results);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    const fetchPopular = async () => {
-      try {
-        const response = await axios.get('/api/popular?perPage=30');
-        const data: AnimeInfo = response.data;
-        setPopular(data.results);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    fetchTrending();
-    fetchPopular();
-  }, []);
+  const trending: AnimeResult[] = use(fetchResult('trending'))
+    ?.results as AnimeResult[];
+  const popular: AnimeResult[] = use(fetchResult('popular'))
+    ?.results as AnimeResult[];
 
   return (
     <div className="flex gap-[115px]">
