@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import SlidingCard from './components/SlidingCard';
 import { AnimeInfo, AnimeResult } from '@/utils/types';
-import LeftNavbar from './components/Navbar';
 import { generateIndex } from '@/utils/functions';
 import SearchComponent from './components/Search';
+import Sidebar from './components/Sidebar';
 
 export default function Home() {
   const [trending, setTrending] = useState<AnimeResult[] | null>(null);
@@ -38,36 +38,29 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex gap-10">
+    <div className="flex gap-[115px]">
+      <div className="relative z-[312]">
+        <Sidebar />
+      </div>
       <div className="fixed">
-        <div className="flex ml-2">
-          <LeftNavbar
-            colors={{
-              home: '#0e98cf',
-              trending: `${trending?.[0].color ?? '#0e98cf'}`,
-              popular: `${popular?.[generateIndex(0, 3)].color ?? '#0e98cf'}`,
-            }}
-            active="Home"
-          />
-          <div className="divider divider-vertical -ml-4 mx-0 h-screen"></div>
-          <div className="ml-[450px] mt-4">
-            <SearchComponent />
-          </div>
+        <div className="ml-[650px] mt-4">
+          <SearchComponent />
         </div>
       </div>
-      <div className="ml-60 mt-20">
-        {trending && popular ? (
-          <div>
-            <h1 className="text-3xl font-semibold">Trending Now</h1>
-            <SlidingCard animeList={trending} />
 
-            <h1 className="text-3xl font-semibold">All Time Popular</h1>
-            <SlidingCard animeList={popular} />
-          </div>
-        ) : (
-          <div>Loading</div>
-        )}
-      </div>
+      <div className="divider divider-vertical -ml-28 mx-0 h-screen"></div>
+
+      {trending && popular ? (
+        <div className="-ml-28 mt-20">
+          <h1 className="text-3xl font-semibold">Trending Now</h1>
+          <SlidingCard animeList={trending} />
+
+          <h1 className="text-3xl font-semibold">All Time Popular</h1>
+          <SlidingCard animeList={popular} />
+        </div>
+      ) : (
+        <div>Loading</div>
+      )}
     </div>
   );
 }
