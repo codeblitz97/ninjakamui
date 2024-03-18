@@ -1,4 +1,4 @@
-import { Player } from '@/app/components/Player/VidstackPlayer';
+import Player from '@/app/components/Player/VidstackPlayer';
 import {
   type SeasonType,
   decodeNumber,
@@ -7,13 +7,16 @@ import {
   generateColorByStatus,
   StatusType,
 } from '@/utils/functions';
-import { ConsumetAnimeData, VideoInfo } from '@/utils/types';
+import { Anime, ConsumetAnimeData, VideoInfo } from '@/utils/types';
 import axios from 'axios';
 import type { Metadata } from 'next';
 import { FaShare, FaSmile } from 'react-icons/fa';
 import CopyToClipboard from './copy';
 import Image from 'next/image';
 import type { Viewport } from 'next';
+import Sidebar from '@/app/components/Sidebar';
+import { consumetApi } from '@/config/config';
+import SearchComponent from '@/app/components/Search';
 
 type Props = {
   params: {
@@ -22,12 +25,22 @@ type Props = {
   };
 };
 
-const fetchInfo = async (
-  id: string
-): Promise<ConsumetAnimeData | undefined> => {
+const fetchInfo = async (id: string): Promise<Anime | undefined> => {
   try {
     let baseUrl = process.env.NEXT_PUBLIC_THIS_URL as string;
     const response = await axios.get(`${baseUrl}/api/info?id=${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(error);
+    return undefined;
+  }
+};
+
+const fetchConsumetInfo = async (
+  id: string
+): Promise<ConsumetAnimeData | undefined> => {
+  try {
+    const response = await axios.get(`${consumetApi}/info/${id}`);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -46,6 +59,22 @@ const fetchEpisode = async (
     return response.data;
   } catch (error) {
     console.error(error);
+    return undefined;
+  }
+};
+
+const fetchEpisodeImage = async (id: string, episodeNumber: number) => {
+  try {
+    let baseUrl = process.env.NEXT_PUBLIC_THIS_URL as string;
+
+    const response = await axios.get(`${baseUrl}/api/episode/${id}`);
+
+    const episodeImage = response.data[0]
+      .find((p: any) => (p.providerId = 'gogoanime'))
+      .episodes.sub.find((e: any) => e.number === episodeNumber).image;
+
+    return episodeImage;
+  } catch (error) {
     return undefined;
   }
 };
@@ -70,7 +99,7 @@ export async function generateMetadata({
       ? `${info.description.replace(/<\/?[^>]+(>|$)/g, '').slice(0, 180)}...`
       : 'Loading...',
     openGraph: {
-      images: info ? info.cover : 'No image',
+      images: info ? info.coverImage : 'No image',
     },
   };
 }
@@ -100,16 +129,51 @@ export default async function Watch({ params }: Readonly<Props>) {
       )
     )
   );
+  const j = await fetchConsumetInfo(
+    String(
+      decodeNumber(
+        decodeURIComponent(params.id),
+        process.env.NEXT_PUBLIC_SECRET_KEY as string
+      )
+    )
+  );
 
-  const episodeId = i?.episodes.find(
-    (i) => i.number === Number(params.episodeNumber.split('-')[1])
-  )?.id;
+  const episodeId =
+    // i?.episodes.data
+    //   .find((p) => p.providerId === 'zoro')
+    //   ?.episodes.find(
+    //     (i) => i.number === Number(params.episodeNumber.split('-')[1])
+    //   )?.id ??
+    i?.episodes.data
+      .find((p) => p.providerId === 'gogoanime')
+      ?.episodes.find(
+        (i) => i.number === Number(params.episodeNumber.split('-')[1])
+      )
+      ?.id.replace(/\//g, '');
+  let stream: VideoInfo | undefined;
 
-  const stream = await fetchEpisode(String(episodeId));
+  if (episodeId) stream = await fetchEpisode(String(episodeId));
+
+  const episodeImage = await fetchEpisodeImage(
+    String(
+      decodeNumber(
+        decodeURIComponent(params.id),
+        process.env.NEXT_PUBLIC_SECRET_KEY as string
+      )
+    ),
+    Number(params.episodeNumber.split('-')[1])
+  );
 
   return (
     <div>
-      {i ? (
+      <div className="relative z-[312]">
+        <Sidebar />
+        <div className="ml-[650px] -mt-12">
+          <SearchComponent />
+        </div>
+      </div>
+
+      {i && j ? (
         <div className="absolute left-5">
           <div className="w-full flex flex-col lg:flex-row lg:max-w-[900px] mx-auto  lg:gap-[6px] mt-[70px]">
             <div className="flex-grow w-full h-full">
@@ -122,7 +186,7 @@ export default async function Watch({ params }: Readonly<Props>) {
                   title={`${i.title.english} Episode ${
                     params.episodeNumber.split('-')[1]
                   }`}
-                  cover={`${i.cover}`}
+                  cover={`${episodeImage}`}
                 />
                 <h1 className="text-xl font-semibold max-w-[900px]">
                   {i.title.english} Episode {params.episodeNumber.split('-')[1]}
@@ -175,7 +239,7 @@ export default async function Watch({ params }: Readonly<Props>) {
                                 className="input input-primary"
                                 value={`${
                                   process.env.NEXT_PUBLIC_THIS_URL
-                                }/${encodeURIComponent(
+                                }/watch/${encodeURIComponent(
                                   encodeNumber(
                                     Number(i.id),
                                     process.env.NEXT_PUBLIC_SECRET_KEY as string
@@ -193,11 +257,11 @@ export default async function Watch({ params }: Readonly<Props>) {
                 </div>
                 <div className="bg-slate-600 mt-5 rounded-md">
                   <section className="flex gap-1 ml-2">
-                    <h1>{i.popularity}</h1>
+                    <h1>{i.averagePopularity}</h1>
                     <span>•</span>
                     <h1>{i.status}</h1>
                     <span>•</span>
-                    <h1>{i.releaseDate}</h1>
+                    <h1>{i.year}</h1>
                     <div className="flex ml-3 gap-1">
                       {i.genres.map((i) => {
                         return (
@@ -216,7 +280,6 @@ export default async function Watch({ params }: Readonly<Props>) {
                     <p dangerouslySetInnerHTML={{ __html: i.description }} />
                   </section>
                   <section className="mt-4 ml-2">
-                    <p>Studios: {i.studios.join(', ')}</p>
                     <p>
                       Season:{' '}
                       <span
@@ -231,7 +294,7 @@ export default async function Watch({ params }: Readonly<Props>) {
                       </span>
                     </p>
                     <p className="flex items-center gap-2">
-                      <FaSmile /> <span>{i.rating}%</span>
+                      <FaSmile /> <span>{i.rating.anilist}</span>
                     </p>
                   </section>
                 </div>
@@ -243,90 +306,101 @@ export default async function Watch({ params }: Readonly<Props>) {
                   More episodes
                 </h1>
                 <div className="max-h-[500px] overflow-y-auto min-w-[400px]">
-                  {i.episodes.map((e, ind) => {
-                    return (
-                      <a
-                        key={e.id}
-                        href={`/watch/${encodeURIComponent(
-                          encodeNumber(
-                            Number(i.id),
-                            process.env.NEXT_PUBLIC_SECRET_KEY as string
-                          )
-                        )}/episode-${e.number}`}
-                      >
-                        <div className="hover:bg-slate-500/20 duration-200 h-32 rounded-md flex items-center mt-4">
-                          <div className="flex gap-2 ml-2">
-                            <Image
-                              src={e.image}
-                              alt={e.title ?? `Episode ${ind + 1}`}
-                              width={2024}
-                              height={2024}
-                              className="object-cover max-h-[110px] max-w-[170px] rounded-md"
-                            />
-                            <div className="min-w-[40px]">
-                              <h1 className="flex gap-2">
-                                <span>Episode</span>
-                                <span>{e.number}</span>
-                              </h1>
-                              <h1 className="text-sm text-gray-400">
-                                {i.title.romaji}
-                              </h1>
-                              <h1
-                                className="text-sm"
-                                style={{
-                                  color: generateColorBySeason(
-                                    (i.season.slice(0, 1) +
-                                      i.season
-                                        .slice(1)
-                                        .toLowerCase()) as SeasonType
-                                  ),
-                                }}
-                              >
-                                {i.status}
-                              </h1>
+                  {i.episodes.data
+                    .find((e) => e.providerId === 'gogoanime')
+                    ?.episodes.map((e, ind) => {
+                      return (
+                        <a
+                          key={e.id}
+                          href={`/watch/${encodeURIComponent(
+                            encodeNumber(
+                              Number(i.id),
+                              process.env.NEXT_PUBLIC_SECRET_KEY as string
+                            )
+                          )}/episode-${e.number}`}
+                        >
+                          <div className="hover:bg-slate-500/20 duration-200 h-32 rounded-md flex items-center mt-4">
+                            <div className="flex gap-2 ml-2">
+                              <Image
+                                src={e.img ?? i.bannerImage}
+                                alt={e.title ?? `Episode ${ind + 1}`}
+                                width={2024}
+                                height={2024}
+                                className="object-cover max-h-[110px] max-w-[170px] rounded-md"
+                              />
+                              <div className="min-w-[40px]">
+                                <h1 className="flex gap-2">
+                                  <span>Episode</span>
+                                  <span>{e.number}</span>
+                                </h1>
+                                <h1 className="text-sm text-gray-400">
+                                  {i.title.romaji}
+                                </h1>
+                                <h1
+                                  className="text-sm"
+                                  style={{
+                                    color: generateColorBySeason(
+                                      (i.season.slice(0, 1) +
+                                        i.season
+                                          .slice(1)
+                                          .toLowerCase()) as SeasonType
+                                    ),
+                                  }}
+                                >
+                                  {i.status}
+                                </h1>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </a>
-                    );
-                  })}
+                        </a>
+                      );
+                    })}
                 </div>
               </div>
               <div className="mt-10">
                 <h1 className="font-semibold text-2xl mb-3">Recommendations</h1>
-                {i.recommendations.map((r) => {
+                {j.recommendations.map((r) => {
                   return (
                     <div key={r.id} className="mb-2">
-                      <div className="flex gap-2">
-                        <Image
-                          src={r.cover}
-                          alt={r.title.english}
-                          height={2024}
-                          width={2024}
-                          className="object-cover h-[150px] w-[200px] rounded-md"
-                        />
-                        <div>
-                          <h1 className="font-medium text-xl">
-                            {r.title.english}
-                          </h1>
-                          <h1 className="text-lg text-gray-300">
-                            {r.title.romaji}
-                          </h1>
-                          <h1>
-                            {r.type} •{' '}
-                            <span
-                              style={{
-                                color: generateColorByStatus(
-                                  r.status as StatusType
-                                ),
-                              }}
-                            >
-                              {r.status}
-                            </span>{' '}
-                            • {r.episodes}
-                          </h1>
+                      <a
+                        href={`/watch/${encodeURIComponent(
+                          encodeNumber(
+                            Number(r.id),
+                            process.env.NEXT_PUBLIC_SECRET_KEY as string
+                          )
+                        )}/episode-1`}
+                      >
+                        <div className="flex gap-2">
+                          <Image
+                            src={r.cover}
+                            alt={r.title.english}
+                            height={2024}
+                            width={2024}
+                            className="object-cover h-[150px] w-[200px] rounded-md"
+                          />
+                          <div>
+                            <h1 className="font-medium text-xl">
+                              {r.title.english}
+                            </h1>
+                            <h1 className="text-lg text-gray-300">
+                              {r.title.romaji}
+                            </h1>
+                            <h1>
+                              {r.type} •{' '}
+                              <span
+                                style={{
+                                  color: generateColorByStatus(
+                                    r.status as StatusType
+                                  ),
+                                }}
+                              >
+                                {r.status}
+                              </span>{' '}
+                              • {r.episodes}
+                            </h1>
+                          </div>
                         </div>
-                      </div>
+                      </a>
                     </div>
                   );
                 })}
