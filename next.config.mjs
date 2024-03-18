@@ -14,6 +14,12 @@ const nextConfig = {
         protocol: 'https',
         pathname: '/**',
       },
+      {
+        hostname: 'artworks.thetvdb.com',
+        port: '',
+        protocol: 'https',
+        pathname: '/**',
+      },
     ],
   },
 };
