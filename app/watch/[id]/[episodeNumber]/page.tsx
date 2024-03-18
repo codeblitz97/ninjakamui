@@ -7,7 +7,12 @@ import {
   generateColorByStatus,
   StatusType,
 } from '@/utils/functions';
-import { Anime, ConsumetAnimeData, VideoInfo } from '@/utils/types';
+import {
+  Anime,
+  ConsumetAnimeData,
+  ServerAnime,
+  VideoInfo,
+} from '@/utils/types';
 import axios from 'axios';
 import type { Metadata } from 'next';
 import { FaShare, FaSmile } from 'react-icons/fa';
@@ -17,6 +22,7 @@ import type { Viewport } from 'next';
 import Sidebar from '@/app/components/Sidebar';
 import { consumetApi } from '@/config/config';
 import SearchComponent from '@/app/components/Search';
+import Episodes from './episodes';
 
 type Props = {
   params: {
@@ -67,12 +73,13 @@ const fetchEpisodeImage = async (id: string, episodeNumber: number) => {
   try {
     let baseUrl = process.env.NEXT_PUBLIC_THIS_URL as string;
 
-    const response = await axios.get(`${baseUrl}/api/episode/${id}`);
+    const response: ServerAnime[] = (
+      await axios.get(`${baseUrl}/api/episode/${id}`)
+    ).data;
 
-    const episodeImage = response.data[0]
-      .find((p: any) => (p.providerId = 'gogoanime'))
-      .episodes.sub.find((e: any) => e.number === episodeNumber).image;
-
+    const episodeImage = response[0].episodes.sub.find(
+      (i) => i.number === episodeNumber
+    )?.image;
     return episodeImage;
   } catch (error) {
     return undefined;
@@ -186,7 +193,7 @@ export default async function Watch({ params }: Readonly<Props>) {
                   title={`${i.title.english} Episode ${
                     params.episodeNumber.split('-')[1]
                   }`}
-                  cover={`${episodeImage}`}
+                  cover={episodeImage as string}
                 />
                 <h1 className="text-xl font-semibold max-w-[900px]">
                   {i.title.english} Episode {params.episodeNumber.split('-')[1]}
@@ -301,62 +308,15 @@ export default async function Watch({ params }: Readonly<Props>) {
               </div>
             </div>
             <div className="absolute left-[1000px] top-14">
-              <div className="bg-gray-800  w-[430px] rounded-lg">
-                <h1 className="ml-4 font-semibold text-2xl mb-2">
-                  More episodes
-                </h1>
-                <div className="max-h-[500px] overflow-y-auto min-w-[400px]">
-                  {i.episodes.data
-                    .find((e) => e.providerId === 'gogoanime')
-                    ?.episodes.map((e, ind) => {
-                      return (
-                        <a
-                          key={e.id}
-                          href={`/watch/${encodeURIComponent(
-                            encodeNumber(
-                              Number(i.id),
-                              process.env.NEXT_PUBLIC_SECRET_KEY as string
-                            )
-                          )}/episode-${e.number}`}
-                        >
-                          <div className="hover:bg-slate-500/20 duration-200 h-32 rounded-md flex items-center mt-4">
-                            <div className="flex gap-2 ml-2">
-                              <Image
-                                src={e.img ?? i.bannerImage}
-                                alt={e.title ?? `Episode ${ind + 1}`}
-                                width={2024}
-                                height={2024}
-                                className="object-cover max-h-[110px] max-w-[170px] rounded-md"
-                              />
-                              <div className="min-w-[40px]">
-                                <h1 className="flex gap-2">
-                                  <span>Episode</span>
-                                  <span>{e.number}</span>
-                                </h1>
-                                <h1 className="text-sm text-gray-400">
-                                  {i.title.romaji}
-                                </h1>
-                                <h1
-                                  className="text-sm"
-                                  style={{
-                                    color: generateColorBySeason(
-                                      (i.season.slice(0, 1) +
-                                        i.season
-                                          .slice(1)
-                                          .toLowerCase()) as SeasonType
-                                    ),
-                                  }}
-                                >
-                                  {i.status}
-                                </h1>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      );
-                    })}
-                </div>
-              </div>
+              <Episodes
+                i={i}
+                id={String(
+                  decodeNumber(
+                    decodeURIComponent(params.id),
+                    process.env.NEXT_PUBLIC_SECRET_KEY as string
+                  )
+                )}
+              />
               <div className="mt-10">
                 <h1 className="font-semibold text-2xl mb-3">Recommendations</h1>
                 {j.recommendations.map((r) => {
@@ -404,6 +364,7 @@ export default async function Watch({ params }: Readonly<Props>) {
                     </div>
                   );
                 })}
+                E
               </div>
             </div>
           </div>
