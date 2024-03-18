@@ -1,3 +1,5 @@
+'use client';
+
 import { CiSearch } from 'react-icons/ci';
 import { KeyboardEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,8 +21,8 @@ export default function PerformSearch() {
   };
 
   return (
-    <div>
-      <span className="input-ghost-primary input flex items-center input-lg input-rounded input-block">
+    <div className="relative bg-black z-[9999]">
+      <span className="input-ghost-primary input flex items-center input-lg input-rounded">
         <input
           placeholder="Naruto: Shipudden"
           className="bg-transparent outline-none"
