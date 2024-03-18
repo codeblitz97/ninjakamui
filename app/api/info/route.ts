@@ -1,4 +1,4 @@
-import { consumetApi } from '@/config/config';
+import { anifyApi, consumetApi } from '@/config/config';
 import axios, { type AxiosError, isAxiosError } from 'axios';
 import { getRandom } from 'random-useragent';
 import { NextRequest, NextResponse } from 'next/server';
@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await axios.get(
-      `${consumetApi}/info/${searchParams.get('id')}`,
+      `${anifyApi}/info/${searchParams.get('id')}`,
       {
         headers: { 'User-Agent': getRandom() },
       }
