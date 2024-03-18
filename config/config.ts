@@ -1,3 +1,3 @@
-export const consumetApi = 'http://69.57.161.113:29932/meta/anilist';
+export const consumetApi = `${process.env.NINJA_KAMUI_API}/meta/anilist`;
 export const anifyApi = 'https://api.anify.tv';
-export const streamApi = 'http://69.57.161.113:29932/anime';
+export const streamApi = `${process.env.NINJA_KAMUI_API}/anime`;
