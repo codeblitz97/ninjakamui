@@ -16,11 +16,6 @@ type Props = {
 };
 
 export default function SlidingCard({ animeList }: Readonly<Props>) {
-  const [info, setInfo] = useState<AnimeData | null>(null);
-  const [prevEndpoint, setPrevEndpoint] = useState<string | null>(null);
-  const [cachedData, setCachedData] = useState<{ [key: string]: AnimeData }>(
-    {}
-  );
   const [hoveredId, setHoveredId] = useState<number | null>(null);
   const [trailer, setTrailer] = useState<string | null>(null);
   const [isHovered, setIsHovered] = useState(false);
@@ -35,7 +30,6 @@ export default function SlidingCard({ animeList }: Readonly<Props>) {
         setDelayCompleted(true);
         const anime = animeList.find((a) => Number(a.id) === id);
         if (anime) {
-          await handleRequest(anime.id);
           await fetchTrailer(anime.trailer?.id ?? '');
         }
       }, 3000);
@@ -44,25 +38,7 @@ export default function SlidingCard({ animeList }: Readonly<Props>) {
     }
   };
 
-  const handleRequest = async (id: string) => {
-    if (prevEndpoint === `/api/info?id=${id}`) {
-      console.warn('The request was made previously so using cache.');
-      setInfo(cachedData[prevEndpoint]);
-    } else {
-      console.log('Sending request as no cache with this id was found.');
-      const response = await axios.get(`/api/info?id=${id}`);
-      const newData = response.data;
-      setInfo(newData);
-      setCachedData((prevData) => ({
-        ...prevData,
-        [`/api/info?id=${id}`]: newData,
-      }));
-      setPrevEndpoint(`/api/info?id=${id}`);
-    }
-  };
-
   const clearState = () => {
-    setInfo(null);
     setHoveredId(null);
     setIsHovered(false);
     setTrailer(null);
@@ -149,7 +125,7 @@ export default function SlidingCard({ animeList }: Readonly<Props>) {
                     </motion.div>
                   )}
                 </AnimatePresence>
-                {info && (
+                {anime && (
                   <div className="absolute inset-0">
                     <AnimatePresence>
                       {isHovered && hoveredId === Number(anime.id) ? (
