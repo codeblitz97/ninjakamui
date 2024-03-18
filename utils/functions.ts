@@ -184,3 +184,79 @@ export function ProvidersMap(
 
   return { subProviders, dubProviders };
 }
+
+export const Top100AnilistForSitemaps = async () => {
+  try {
+    const response = await fetch(
+      'https://graphql.anilist.co',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify({
+          query: `query($perPage: Int, $page: Int) {
+                Page(page: $page, perPage: $perPage) {
+                    pageInfo {
+                        total
+                        perPage
+                        currentPage
+                        lastPage
+                        hasNextPage
+                    }
+                    media (sort :SCORE_DESC, type : ANIME){
+                        id
+                        idMal
+                        title {
+                            romaji
+                            english
+                            userPreferred
+                        }
+                        coverImage {
+                            large
+                            extraLarge
+                            color
+                        }
+                        episodes
+                        status
+                        duration
+                        genres
+                        season
+                        format
+                        averageScore
+                        popularity
+                        nextAiringEpisode {
+                            airingAt
+                            episode
+                          }
+                          seasonYear
+                          startDate {
+                            year
+                            month
+                            day
+                          }
+                          endDate {
+                            year
+                            month
+                            day
+                          }
+                    }
+                }
+            }`,
+          variables: {
+            page: 1,
+            perPage: 10,
+          },
+        }),
+      },
+      // @ts-ignore
+      { next: { revalidate: 3600 } }
+    );
+
+    const data = await response.json();
+    return data.data.Page.media;
+  } catch (error) {
+    console.error('Error fetching data from AniList:', error);
+  }
+};
