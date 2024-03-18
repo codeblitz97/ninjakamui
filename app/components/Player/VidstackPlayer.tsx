@@ -28,7 +28,7 @@ type Props = {
   cover: string;
 };
 
-export function Player({ hsl, title, cover }: Readonly<Props>) {
+export default function Player({ hsl, title, cover }: Readonly<Props>) {
   let player = useRef<MediaPlayerInstance>(null);
 
   useEffect(() => {
