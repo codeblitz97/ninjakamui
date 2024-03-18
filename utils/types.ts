@@ -1,7 +1,20 @@
 interface AnimeInfo {
   currentPage: number;
   hasNextPage: boolean;
+  totalPages?: number;
+  totalResults?: number;
   results: AnimeResult[];
+}
+
+interface ConsumetEpisode {
+  id: string;
+  title: null;
+  image: string;
+  imageHash: string;
+  number: number;
+  createdAt: null;
+  description: null;
+  url: string;
 }
 
 interface ConsumetAnimeData {
@@ -119,16 +132,7 @@ interface ConsumetAnimeData {
     coverHash: string;
     rating: number;
   }[];
-  episodes: {
-    id: string;
-    title: null;
-    image: string;
-    imageHash: string;
-    number: number;
-    createdAt: null;
-    description: null;
-    url: string;
-  }[];
+  episodes: ConsumetEpisode[];
 }
 
 interface AnimeResult {
@@ -268,11 +272,137 @@ interface VideoSource {
   quality: string;
 }
 
+interface AnifyEpisodeDetail {
+  id: string;
+  number: number;
+  title: string;
+  isFiller: boolean;
+  img: string | null;
+  hasDub: boolean;
+  description: string | null;
+  rating: number | null;
+  updatedAt: number;
+}
+
+interface Episode {
+  id: string;
+  img: string | null;
+  title: string;
+  hasDub: boolean;
+  number: number;
+  rating: null | number;
+  isFiller: boolean;
+  updatedAt: number;
+  description: null | string;
+}
+
+interface Mapping {
+  id: string;
+  providerId: string;
+  similarity: number;
+  providerType: string;
+}
+
+interface Title {
+  native: string;
+  romaji: string;
+  english: string | null;
+}
+
+interface Relation {
+  id: string;
+  type: string;
+  title: Title;
+  format: string;
+  relationType: string;
+}
+
+interface Character {
+  name: string;
+  image: string;
+  voiceActor: {
+    name: string;
+    image: string;
+  };
+}
+
+interface Popularity {
+  mal: number;
+  tmdb: number;
+  anilist: number;
+}
+
+interface Rating {
+  mal: number;
+  tmdb: number;
+  kitsu: number;
+  anilist: number;
+}
+
+interface EpisodeData {
+  episodes: Episode[];
+  providerId: string;
+}
+
+interface LatestEpisode {
+  updatedAt: number;
+  latestTitle: string;
+  latestEpisode: number;
+}
+
+interface Artwork {
+  img: string;
+  type: string;
+  providerId: string;
+}
+
+interface Anime {
+  id: string;
+  slug: string;
+  coverImage: string;
+  bannerImage: string;
+  trailer: string;
+  status: string;
+  season: string;
+  title: {
+    native: string;
+    romaji: string;
+    english: string;
+  };
+  currentEpisode: number;
+  mappings: Mapping[];
+  synonyms: string[];
+  countryOfOrigin: string;
+  description: string;
+  duration: number;
+  color: string;
+  year: number;
+  rating: Rating;
+  popularity: Popularity;
+  type: string;
+  format: string;
+  relations: Relation[];
+  totalEpisodes: number;
+  genres: string[];
+  tags: string[];
+  episodes: {
+    data: EpisodeData[];
+    latest: LatestEpisode;
+  };
+  averageRating: number;
+  averagePopularity: number;
+  artwork: Artwork[];
+  characters: Character[];
+}
+
 export type {
+  ConsumetEpisode,
   AnimeInfo,
   AnimeResult,
   AnimeData,
   ConsumetAnimeData,
   VideoInfo,
   VideoSource,
+  AnifyEpisodeDetail,
+  Anime,
 };
